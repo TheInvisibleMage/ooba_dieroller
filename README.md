@@ -9,7 +9,7 @@ I made this in my spare time, feel free to fork and improve it (it sure does nee
 
 ## How to Use
 The extension will detect instances of basic dice notation, and roll appropriately, replacing that notation with the result.
-- For example, the prompt "I roll 1d20+3 to attack the goblin!" may result in "I roll 17 to attacck the goblin!" being passed as the prompt.
+- For example, the prompt "I roll 1d20+3 to attack the goblin!" may result in "I roll 17 to attack the goblin!" being passed as the prompt.
 As noted above, basic additions and subtractions can be used to affect the result. Advantage and Disadvantage can also be applied, using " adv" for advantage, or " disadv" for disadvantage (again, noting spaces).
 Some valid examples are below.
 - "2d8"
