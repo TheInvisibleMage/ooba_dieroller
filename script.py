@@ -16,10 +16,11 @@ params = {
 advString = "adv"
 disadvString = "disadv"
 dieSeperator = 'd'
-diceRegex = re.compile(r"((\d*)" + dieSeperator + r"(\d+)((\+|-)(\d+))?\s?("+ advString + r"|"+ disadvString + r")?)")
-diceRollPromptString = "\n\nThe following list represents the results of each die roll requested above, provided in order: "
+diceRegex = re.compile(r"((\d*)" + dieSeperator + r"(\d+)((\+|-)(\d+))?\s?("+ disadvString + r"|"+ advString + r")?)", re.IGNORECASE)
+#diceRollPromptString = "\n\nThe following list represents the results of each die roll requested above, provided in order: "
+#diceRollReplaceString = "my dice, and get a result of "
 
-def chat_input_modifier(inputString, state, is_chat=False):
+def chat_input_modifier(inputString: str, visibleString: str, state: dict) -> tuple[str, str]:
     """
     In default/notebook modes, modifies the whole prompt.
 
@@ -27,8 +28,8 @@ def chat_input_modifier(inputString, state, is_chat=False):
     to "text", here called "string", and not to "visible_text".
     """
 
-    resultList = []
     matches = re.search(diceRegex, inputString)
+    completePromptString = inputString
     if(matches):
         # For each instance of dice notation in the string
         for match in re.finditer(diceRegex, inputString):
@@ -37,36 +38,54 @@ def chat_input_modifier(inputString, state, is_chat=False):
             dieSize = match.group(3)
             opSign = match.group(5)
             opMag = match.group(6)
-            advDisadv = match.group(7)
+            advDisadv = match.group(7).lower()
+
+            opResult = 0
+            advDisadvResult = None
+            advDisadvApplies = False
             
             # Roll the dice
-            result = roll(numRolled, dieSize)
+            dieResult = roll(numRolled, dieSize)
+
+            # Apply any additions/subtractions
+            if(opSign and opMag):
+                if("-" == opSign):
+                    opResult -= int(opMag)
+                elif("+" == opSign):
+                    opResult += int(opMag)
+                logString += opSign + opMag
 
             # Apply advantage and disadvantage if required
             if(advDisadv):
                 advDisadvResult = roll(numRolled, dieSize)
-                if((advString in advDisadv and advDisadvResult > result) or (disadvString in advDisadv and advDisadvResult < result)):
-                    result = advDisadvResult
+                if((advString == advDisadv and advDisadvResult > dieResult) or (disadvString == advDisadv and advDisadvResult < dieResult)):
+                    advDisadvApplies = True
 
-            # Apply any additions/subtractions
-            if(opSign):
-                if("-" in opSign):
-                    result = int(result) - int(opMag)
-                elif("+" in opSign):
-                    result = int(result) + int(opMag)
-
-            logString = "DieRoller has rolled " + numRolled + dieSeperator + dieSize + opSign + opMag
+            # Assemble logs
+            logString = "DieRoller has rolled " + numRolled + dieSeperator + dieSize  + " and got a result of " + str(dieResult)
             if(advDisadv):
-                logString += " " + advDisadv
-            logger.info(logString + " and got a result of " + str(result))
-            resultList.append(str(result))
-            
-    if(resultList):
-        seperator = ', '
-        resultListString = seperator.join(resultList)
-        completePromptString = inputString + diceRollPromptString + resultListString
+                logString += ", with their second roll giving a result of " + str(advDisadvResult)
 
-    return completePromptString, inputString
+            if(opSign and opMag):
+                logString += ", with a modifier of " + opSign + opMag
+            else:
+                logString += "."
+
+            # Find final value and log
+            if(advDisadvApplies):
+                dieResult = advDisadvResult
+            result = int(dieResult) + opResult
+
+            logString += " This brings their final total result to " + str(result) + "."
+            logger.info(logString)
+            
+            #completePromptString = re.sub(diceRegex, diceRollReplaceString + str(result), completePromptString, count=1)
+            completePromptString = re.sub(diceRegex, str(result), completePromptString, count=1)
+
+    if(matches):
+        return completePromptString, visibleString
+    else:
+        return inputString, visibleString
 
 def roll(num, size):
      return str(random.randint(int(num), int(num)*int(size)))
