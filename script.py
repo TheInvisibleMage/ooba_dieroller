@@ -5,6 +5,7 @@ Now the question is whether the LLM cna interperate them correctly.
 
 import re
 import random
+from modules.logging_colors import logger
 
 params = {
     "display_name": "Dice Roller",
@@ -52,7 +53,9 @@ def input_modifier(string, state, is_chat=False):
                     result = result - opMag
                 elif("+" in opSign):
                     result = result + opMag
-                    
+
+            logString = "DieRoller has rolled " + numRolled + dieSeperator + dieSize + opSign + opMag + " " + advDisadv
+            logger.info(logString)
             resultList.append(result)
             
     if(resultList):
