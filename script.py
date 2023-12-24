@@ -43,11 +43,18 @@ def chat_input_modifier(inputString: str, visibleString: str, state: dict) -> tu
             opResult = 0
             advDisadvResult = None
             advDisadvApplies = False
+            advDisadvFullString = "Advantage"
             
             # Roll the dice
             dieResult = roll(numRolled, dieSize)
 
-            # Apply any additions/subtractions
+            # Calculate advantage and disadvantage if required
+            if(advDisadv):
+                advDisadvResult = roll(numRolled, dieSize)
+                if((advString == advDisadv and advDisadvResult > dieResult) or (disadvString == advDisadv and advDisadvResult < dieResult)):
+                    advDisadvApplies = True
+
+            # Calculate any additions/subtractions
             if(opSign and opMag):
                 if("-" == opSign):
                     opResult -= int(opMag)
@@ -55,23 +62,19 @@ def chat_input_modifier(inputString: str, visibleString: str, state: dict) -> tu
                     opResult += int(opMag)
                 logString += opSign + opMag
 
-            # Apply advantage and disadvantage if required
-            if(advDisadv):
-                advDisadvResult = roll(numRolled, dieSize)
-                if((advString == advDisadv and advDisadvResult > dieResult) or (disadvString == advDisadv and advDisadvResult < dieResult)):
-                    advDisadvApplies = True
-
             # Assemble logs
             logString = "DieRoller has rolled " + numRolled + dieSeperator + dieSize  + " and got a result of " + str(dieResult)
             if(advDisadv):
-                logString += ", with their second roll giving a result of " + str(advDisadvResult)
+                if(disadvString == advDisadv):
+                    advDisadvFullString = "Disadvantage"
+                logString += ", with their " + advDisadvFullString + " roll giving a result of " + str(advDisadvResult)
 
             if(opSign and opMag):
                 logString += ", with a modifier of " + opSign + opMag
             else:
                 logString += "."
 
-            # Find final value and log
+            # Calculate final value and log
             if(advDisadvApplies):
                 dieResult = advDisadvResult
             result = int(dieResult) + opResult
