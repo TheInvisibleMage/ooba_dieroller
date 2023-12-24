@@ -6,6 +6,7 @@ Now the question is whether the LLM cna interperate them correctly.
 import re
 import random
 from modules.logging_colors import logger
+from modules import shared
 
 params = {
     "display_name": "Dice Roller",
@@ -16,9 +17,9 @@ advString = "adv"
 disadvString = "disadv"
 dieSeperator = 'd'
 diceRegex = re.compile(r"((\d*)" + dieSeperator + r"(\d+)((\+|-)(\d+))?\s?("+ advString + r"|"+ disadvString + r")?)")
-diceRollPromptString = "The following list represents the results of each die roll requested above, provided in order: "
+diceRollPromptString = "\n\nThe following list represents the results of each die roll requested above, provided in order: "
 
-def input_modifier(string, state, is_chat=False):
+def chat_input_modifier(inputString, state, is_chat=False):
     """
     In default/notebook modes, modifies the whole prompt.
 
@@ -27,10 +28,10 @@ def input_modifier(string, state, is_chat=False):
     """
 
     resultList = []
-    matches = diceRegex.match(string)
+    matches = re.search(diceRegex, inputString)
     if(matches):
         # For each instance of dice notation in the string
-        for match in re.finditer(diceRegex, string):
+        for match in re.finditer(diceRegex, inputString):
             # Find all relevant values
             numRolled = match.group(2)
             dieSize = match.group(3)
@@ -50,18 +51,22 @@ def input_modifier(string, state, is_chat=False):
             # Apply any additions/subtractions
             if(opSign):
                 if("-" in opSign):
-                    result = result - opMag
+                    result = int(result) - int(opMag)
                 elif("+" in opSign):
-                    result = result + opMag
+                    result = int(result) + int(opMag)
 
-            logString = "DieRoller has rolled " + numRolled + dieSeperator + dieSize + opSign + opMag + " " + advDisadv
-            logger.info(logString)
-            resultList.append(result)
+            logString = "DieRoller has rolled " + numRolled + dieSeperator + dieSize + opSign + opMag
+            if(advDisadv):
+                logString += " " + advDisadv
+            logger.info(logString + " and got a result of " + str(result))
+            resultList.append(str(result))
             
     if(resultList):
-        string = string + diceRollPromptString + resultList
+        seperator = ', '
+        resultListString = seperator.join(resultList)
+        completePromptString = inputString + diceRollPromptString + resultListString
 
-    return string
+    return completePromptString, inputString
 
 def roll(num, size):
      return str(random.randint(int(num), int(num)*int(size)))
