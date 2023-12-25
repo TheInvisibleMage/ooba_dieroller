@@ -1,6 +1,6 @@
 # ooba_dieroller
 An extension for text-generation-webui that adds a basic die roller, to dodge the LLM being biased with it's own rolls.
-I made this in my spare time, feel free to fork and improve it (it sure does need it).
+I made this in my spare time, feel free spin up your own PR and improve it.
 
 ## Installation
 - Navigate to the .\text-generation-webui\extensions folder in your terminal.
