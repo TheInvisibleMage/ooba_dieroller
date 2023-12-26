@@ -25,5 +25,6 @@ Some valid examples are below.
 - Add config.
 - Add UI for easier config changes.
 - Add things you can config (eg. trigger phrases to prefix/postfix dice notation, strings you can prefix/postfix to result to help LLM understand it, etc)
+- - In particular, adding support for only recognizing dice notation with user-chosen surrounding characters, to help prevent rolls when none are needed.
 - Support more roll operations (exploding, etc).
 - Improve interperability by LLM.
