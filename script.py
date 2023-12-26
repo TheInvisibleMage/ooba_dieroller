@@ -38,7 +38,7 @@ def chat_input_modifier(inputString: str, visibleString: str, state: dict) -> tu
             dieSize = match.group(3)
             opSign = match.group(5)
             opMag = match.group(6)
-            advDisadv = match.group(7).lower()
+            advDisadv = match.group(7)
 
             opResult = 0
             advDisadvResult = None
@@ -50,6 +50,8 @@ def chat_input_modifier(inputString: str, visibleString: str, state: dict) -> tu
 
             # Calculate advantage and disadvantage if required
             if(advDisadv):
+                # Convert Adv/Disadv to lower if present
+                advDisadv = advDisadv.lower()
                 advDisadvResult = roll(numRolled, dieSize)
                 if((advString == advDisadv and advDisadvResult > dieResult) or (disadvString == advDisadv and advDisadvResult < dieResult)):
                     advDisadvApplies = True
